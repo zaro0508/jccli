@@ -1,11 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import jcapiv1
+"""
+.. currentmodule:: jccli.jc_api1.py
+.. moduleauthor:: zaro0508 <zaro0508@gmail.com>
 
-from jccli.helpers import class_to_dict
+This is a utility library for the jumpcloud version 1 api
+
+.. note::
+
+    To learn more about the jumpcloud api 1
+    `project website <https://github.com/TheJumpCloud/jcapi-python/tree/master/jcapiv1>`_.
+"""
+import jcapiv1
 from jcapiv1.rest import ApiException
 
+from jccli.helpers import class_to_dict
 
+# pylint: disable=too-many-arguments
 class jc_api1:
     """
         Wrapper for Jumpcloud API v1
@@ -48,8 +59,8 @@ class jc_api1:
                                                                   filter=filter)
             users = class_to_dict(api_response.results)
             return users
-        except ApiException as e:
-            raise("Exception when calling SystemusersApi->systemusers_list: %s\n" % e)
+        except ApiException as error:
+            raise "Exception when calling SystemusersApi->systemusers_list: %s\n" % error
 
     def create_user(self, username, email, firstname=None, lastname=None):
         """
@@ -68,16 +79,15 @@ class jc_api1:
                                          firstname=firstname,
                                          lastname=lastname,
                                          sudo=True,
-                                         allow_public_key=True,
-                                         )
+                                         allow_public_key=True)
         try:
             api_response = self.system_users_api.systemusers_post(content_type,
                                                                   accept,
                                                                   body=body,
                                                                   x_org_id=x_org_id)
             return api_response
-        except ApiException as e:
-            raise("Exception when calling SystemusersApi->systemusers_post: %s\n" % e)
+        except ApiException as error:
+            raise "Exception when calling SystemusersApi->systemusers_post: %s\n" % error
 
     def get_user_id(self, username):
         """

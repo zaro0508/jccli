@@ -20,10 +20,10 @@ can be used as a handy facility for running the task from a command line.
 import logging
 import click
 
-from .__init__ import __version__
 from jccli.helpers import get_users_from_file
 from jccli.jc_api1 import jc_api1
 from jccli.jc_api2 import jc_api2
+from .__init__ import __version__
 
 LOGGING_LEVELS = {
     0: logging.NOTSET,
@@ -34,7 +34,7 @@ LOGGING_LEVELS = {
 }  #: a mapping of `verbose` option counts to logging levels
 
 
-class Info(object):
+class args_info(object):
     """
     An information object to pass data between CLI functions.
     """
@@ -43,9 +43,9 @@ class Info(object):
         self.verbose: int = 0
 
 
-# pass_info is a decorator for functions that pass 'Info' objects.
+# pass_info is a decorator for functions that pass 'info' objects.
 #: pylint: disable=invalid-name
-pass_info = click.make_pass_decorator(Info, ensure=True)
+pass_info = click.make_pass_decorator(args_info, ensure=True)
 
 
 # Change the options to below to suit the actual options for your task (or
@@ -53,7 +53,7 @@ pass_info = click.make_pass_decorator(Info, ensure=True)
 @click.group()
 @click.option("--verbose", "-v", count=True, help="Enable verbose output.")
 @pass_info
-def cli(info: Info, verbose: int):
+def cli(info: args_info, verbose: int):
     """
     Run jccli.
     """
@@ -85,21 +85,25 @@ def version():
 @click.option('--key', required=True, type=str, help='Jumpcloud API key')
 @click.option('--users', required=True, type=str, help='Path to the users file')
 @pass_info
-def sync(_: Info, key, users):
+def sync(_: args_info, key, users):
     """
-    Sync users to jumpcloud.
+    sync command
     """
     click.echo("Sync users on jumpcloud with users in " + users)
-    sync(key, users)
+    sync_users(key, users)
 
-
-def sync(key, users_file):
+def sync_users(key, users_file):
+# pylint: disable-msg=too-many-locals
+# pylint: disable-msg=too-many-branches
+    """
+    sync users with jumpcloud
+    """
     api1 = jc_api1(key)
     api2 = jc_api2(key)
 
-    jc_usernames=[]
-    jc_emails=[]
-    jc_users=[]
+    jc_usernames = []
+    jc_emails = []
+    jc_users = []
     jc_users_request = api1.get_users(limit='')
     if jc_users_request:
         for jc_user in jc_users_request:
@@ -115,7 +119,7 @@ def sync(key, users_file):
         exit("No users to manage therefore nothing to do")
 
     # create new users
-    added_users=[]
+    added_users = []
     for user in users:
         do_create_user = False
         try:
@@ -130,7 +134,10 @@ def sync(key, users_file):
 
         if do_create_user:
             click.echo("creating user: " + user_name)
-            # response = api1.create_user(user_name, user_email, user['firstname'], user['lastname'])
+            # response = api1.create_user(user_name,
+            #                             user_email,
+            #                             user['firstname'],
+            #                             user['lastname'])
             # if response is not None:
             #     added_users.append({'username':user_name, 'email':user_email})
             added_users.append({'username':user_name, 'email':user_email})
@@ -141,13 +148,13 @@ def sync(key, users_file):
                 # api2.bind_user_to_group(user_id, group_id)
 
     # remove users that do not exist in the users file
-    local_usernames=[]
-    local_emails=[]
+    local_usernames = []
+    local_emails = []
     for user in users:
         local_usernames.append(user['username'])
         local_emails.append(user['email'])
 
-    removed_users=[]
+    removed_users = []
     for jc_user in jc_users:
         do_remove_user = False
         user_name = jc_user['username']

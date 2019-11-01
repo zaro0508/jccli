@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
 
-import jcapiv2
+"""
+.. currentmodule:: jccli.jc_api2.py
+.. moduleauthor:: zaro0508 <zaro0508@gmail.com>
 
-from jccli.helpers import class_to_dict
+This is a utility library for the jumpcloud version 2 api
+
+.. note::
+
+    To learn more about the jumpcloud api 2
+    `project website <https://github.com/TheJumpCloud/jcapi-python/tree/master/jcapiv2>`_.
+"""
+import jcapiv2
 from jcapiv2.rest import ApiException
 
+from jccli.helpers import class_to_dict
 
 class jc_api2:
     """
@@ -27,19 +37,21 @@ class jc_api2:
         group_id = group_id
         content_type = 'application/json'
         accept = 'application/json'
-        body = self.graph_api.UserGroupMembersReq(id=user_id, op="add", type="user")
+        body = jcapiv2.UserGroupMembersReq(id=user_id,
+                                           op="add",
+                                           type="user")
         x_org_id = ''
 
         try:
             # Manage the associations of a User Group
-            api_response = self.jc.graph_user_group_members_post(group_id,
-                                                                 content_type,
-                                                                 accept,
-                                                                 body=body,
-                                                                 x_org_id=x_org_id)
+            api_response = self.graph_api.graph_user_group_members_post(group_id,
+                                                                        content_type,
+                                                                        accept,
+                                                                        body=body,
+                                                                        x_org_id=x_org_id)
             return api_response
-        except ApiException as e:
-            raise "Exception when calling GraphApi->graph_user_group_members_post: %s\n" % e
+        except ApiException as error:
+            raise "Exception when calling GraphApi->graph_user_group_members_post: %s\n" % error
 
     def bind_ldap_to_user(self, ldap_id):
         """
@@ -47,24 +59,26 @@ class jc_api2:
         :param ldap_id:
         :return:
         """
-        ldapserver_id = 'ldapserver_id_example'
+        ldapserver_id = ldap_id
         content_type = 'application/json'
         accept = 'application/json'
-        body = self.graph_api.GraphManagementReq()
+        body = jcapiv2.GraphManagementReq()
         x_org_id = ''
 
         try:
             # Manage the associations of a LDAP Server
-            api_response = self.jc.graph_ldap_server_associations_post(ldapserver_id,
-                                                                       content_type,
-                                                                       accept,
-                                                                       body=body,
-                                                                       x_org_id=x_org_id)
+            api_response = self.graph_api.graph_ldap_server_associations_post(ldapserver_id,
+                                                                              content_type,
+                                                                              accept,
+                                                                              body=body,
+                                                                              x_org_id=x_org_id)
             return api_response
-        except ApiException as e:
-            raise "Exception when calling GraphApi->graph_ldap_server_associations_post: %s\n" % e
+        except ApiException as error:
+            raise "Exception when calling \
+                   GraphApi->graph_ldap_server_associations_post: %s\n" % error
 
     def get_group_id(self, group_name, limit=10):
+        # pylint: disable-msg=too-many-locals
         """
         Get the jumpcloud group id from a jumpcloud group name
         :param group_name:
@@ -99,5 +113,5 @@ class jc_api2:
                     group_id = group['_id']
 
             return group_id
-        except ApiException as e:
-            raise "Exception when calling GroupsApi->groups_list: %s\n" % e
+        except ApiException as error:
+            raise "Exception when calling GroupsApi->groups_list: %s\n" % error

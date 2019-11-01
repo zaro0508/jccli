@@ -1,27 +1,35 @@
 # -*- coding: utf-8 -*-
 
+"""
+.. currentmodule:: jccli.helpers.py
+.. moduleauthor:: zaro0508 <zaro0508@gmail.com>
+
+This is a set of helper methods
+
+"""
+
 import json
 
-def class_to_dict(object):
+def class_to_dict(class_object):
     """
-      Convert a jumpcloud object from an API request to a dictionary
+      Convert a jumpcloud class to a dictionary
     """
     result = []
-    for item in object:
+    for item in class_object:
         result.append(item.__dict__)
 
     return result
 
-def get_users_from_file(file):
+def get_users_from_file(user_file):
     """
     Get users from a file
-    :param file:
-    :return:
+    :param user_file:
+    :return: a list of users
     """
     try:
-        with open(file, 'r') as f:
-            users = json.load(f)
+        with open(user_file, 'r') as file:
+            users = json.load(file)
 
         return users
-    except (ValueError, TypeError, FileNotFoundError, IOError) as e:
-        raise e
+    except (ValueError, TypeError, FileNotFoundError, IOError) as error:
+        raise error
