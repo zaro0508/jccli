@@ -51,9 +51,10 @@ pass_info = click.make_pass_decorator(args_info, ensure=True)
 # Change the options to below to suit the actual options for your task (or
 # tasks).
 @click.group()
+@click.option('--key', "-k", required=False, type=str, help='Jumpcloud API key')
 @click.option("--verbose", "-v", count=True, help="Enable verbose output.")
 @pass_info
-def cli(info: args_info, verbose: int):
+def cli(info: args_info, key, verbose: int):
     """
     Run jccli.
     """
@@ -72,27 +73,33 @@ def cli(info: args_info, verbose: int):
             )
         )
     info.verbose = verbose
+    info.key = key
 
 @cli.command()
 def version():
     """
-    Get the library version.
+    Get the version.
     """
     click.echo(click.style(f"{__version__}", bold=True))
 
 
 @cli.command()
-@click.option('--key', required=True, type=str, help='Jumpcloud API key')
-@click.option('--users', required=True, type=str, help='Path to the users file')
+@click.option('--config', "-u", required=True, type=str, help='Path to the users file')
 @pass_info
-def sync(_: args_info, key, users):
+def sync(info: args_info, config):
     """
-    sync command
+    Sync Jumpcloud users from a file
     """
-    click.echo("Sync users on jumpcloud with users in " + users)
-    sync_users(key, users)
+    click.echo("Sync users on jumpcloud with users in " + config)
+    click.echo("getting users from file: " + config)
+    config_users = get_users_from_file(config)
+    if config_users is None:
+        exit("No users to manage therefore nothing to do")
 
-def sync_users(key, users_file):
+    sync_users(info.key, config_users)
+
+
+def sync_users(key, users):
 # pylint: disable-msg=too-many-locals
 # pylint: disable-msg=too-many-branches
     """
@@ -112,11 +119,6 @@ def sync_users(key, users_file):
             jc_users.append({'username':jc_user['_username'], 'email':jc_user['_email']})
 
     click.echo("jumpcloud users: " + ','.join(jc_usernames))
-
-    click.echo("getting users from file: " + users_file)
-    users = get_users_from_file(users_file)
-    if users is None:
-        exit("No users to manage therefore nothing to do")
 
     # create new users
     added_users = []

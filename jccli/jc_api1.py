@@ -69,7 +69,7 @@ class jc_api1:
         :param email:
         :param firstname:
         :param lastname:
-        :return:
+        :return: Create a new user in jumpcloud
         """
         content_type = 'application/json'
         accept = 'application/json'

@@ -28,7 +28,8 @@ def get_users_from_file(user_file):
     """
     try:
         with open(user_file, 'r') as file:
-            users = json.load(file)
+            jc_config = json.load(file)
+            users = jc_config['users']
 
         return users
     except (ValueError, TypeError, FileNotFoundError, IOError) as error:
