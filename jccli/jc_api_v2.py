@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-.. currentmodule:: jccli.jc_api2.py
+.. currentmodule:: jccli.jc_api_v2.py
 .. moduleauthor:: zaro0508 <zaro0508@gmail.com>
 
 This is a utility library for the jumpcloud version 2 api
@@ -17,7 +17,7 @@ from jcapiv2.rest import ApiException
 from jccli.helpers import class_to_dict
 from jccli.errors import UerGroupNotFoundError
 
-class jc_api2:
+class JumpcloudApiV2:
     """
         Wrapper for Jumpcloud API v2
     """
