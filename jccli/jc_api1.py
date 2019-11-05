@@ -28,7 +28,7 @@ class jc_api1:
         configuration.api_key['x-api-key'] = api_key
         self.system_users_api = jcapiv1.SystemusersApi(jcapiv1.ApiClient(configuration))
 
-    def get_users(self, limit=10, skip=0, search='', filter='', sort='', fields=''):
+    def get_users(self, limit=10, search='', filter='', sort='', fields=''):
         """
         Get users from jumpcloud
         :param limit:
@@ -41,13 +41,8 @@ class jc_api1:
         """
         content_type = 'application/json'
         accept = 'application/json'
-        limit = limit
-        skip = skip
-        sort = sort
-        fields = fields
+        skip = 0
         x_org_id = ''
-        search = search
-        filter = filter
 
         try:
             api_response = self.system_users_api.systemusers_list(content_type,

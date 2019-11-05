@@ -86,9 +86,9 @@ def version():
 
 @cli.command()
 @click.option('--json', "-j", required=False, type=str,
-              help='Json containing SystemUser properties')
+              help='SystemUser properties json')
 @click.option('--file', "-f", required=False, type=str,
-              help='File containing SystemUser properties')
+              help='SystemUser properties file')
 @pass_info
 def create_user(info: args_info, json, file):
     """
@@ -114,7 +114,40 @@ def create_user(info: args_info, json, file):
     click.echo(response)
 
 @cli.command()
-@click.option('--username', "-u", required=False, type=str, help='Delete by username')
+@click.option('--name', "-n", required=True, type=str, help='Name of the group')
+@click.option('--type', "-t", required=True, type=click.Choice(['user', 'system']),
+              help='The type of group')
+@pass_info
+def create_group(info: args_info, name, type):
+    """
+    Command to create a Jumpcloud group
+    :param info:
+    :param name: The group name
+    :param type: The group type
+    :return:
+    """
+    api2 = jc_api2(info.key)
+    click.echo("Create jumpcloud {} group {}".format(type, name))
+    response = api2.create_group(name, type)
+    click.echo(response)
+
+@cli.command()
+@click.option('--name', "-n", required=True, type=str, help='Name of the group')
+@pass_info
+def delete_group(info: args_info, name):
+    """
+    Command to delete a Jumpcloud group
+    :param info:
+    :param name: The group name
+    :return:
+    """
+    api2 = jc_api2(info.key)
+    click.echo("Delete jumpcloud group {}".format(name))
+    response = api2.delete_group(name)
+    click.echo(response)
+
+@cli.command()
+@click.option('--username', "-u", required=False, type=str, help='The user name')
 @pass_info
 def delete_user(info: args_info, username):
     """
@@ -137,7 +170,7 @@ def delete_user(info: args_info, username):
 
 
 @cli.command()
-@click.option('--config', "-c", required=True, type=str, help='Path to the users file')
+@click.option('--config', "-c", required=True, type=str, help='The config file')
 @pass_info
 def sync(info: args_info, config):
     """
@@ -196,7 +229,7 @@ def sync_users(key, users):
             # if response is not None:
             #     added_users.append({'username':user_name, 'email':user_email})
             added_users.append({'username':user_name, 'email':user_email})
-            group_id = api2.get_group_id("staff")
+            group_id = api2.get_group("staff")
             if group_id:
                 user_id = api1.get_user_id(user_name)
                 click.echo("binding " + user_id + " to group: " + group_id)

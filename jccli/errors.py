@@ -9,14 +9,17 @@ Exceptions
 """
 
 class SystemUserNotFoundError(Exception):
-# pylint: disable=
     """
     Jumpcloud system user is not found
     """
-    pass
+
+class UerGroupNotFoundError(Exception):
+    """
+    Jumpcloud user group is not found
+    """
+    # pass
 
 class MissingRequiredArgumentError(Exception):
     """
     Required arguments are missing
     """
-    pass
