@@ -22,8 +22,8 @@ import click
 from jccli.errors import SystemUserNotFoundError, MissingRequiredArgumentError
 
 from jccli.helpers import get_users_from_config, get_user_from_file, get_user_from_term
-from jccli.jc_api1 import jc_api1
-from jccli.jc_api2 import jc_api2
+from jccli.jc_api_v1 import JumpcloudApiV1
+from jccli.jc_api_v2 import JumpcloudApiV2
 from .__init__ import __version__
 
 LOGGING_LEVELS = {
@@ -35,7 +35,7 @@ LOGGING_LEVELS = {
 }  #: a mapping of `verbose` option counts to logging levels
 
 
-class args_info():
+class ArgsInfo():
     """
     An information object to pass data between CLI functions.
     """
@@ -46,7 +46,7 @@ class args_info():
 
 # pass_info is a decorator for functions that pass 'info' objects.
 #: pylint: disable=invalid-name
-pass_info = click.make_pass_decorator(args_info, ensure=True)
+pass_info = click.make_pass_decorator(ArgsInfo, ensure=True)
 
 
 # Change the options to below to suit the actual options for your task (or
@@ -55,7 +55,7 @@ pass_info = click.make_pass_decorator(args_info, ensure=True)
 @click.option('--key', "-k", required=False, type=str, help='Jumpcloud API key')
 @click.option("--verbose", "-v", count=True, help="Enable verbose output.")
 @pass_info
-def cli(info: args_info, key, verbose: int):
+def cli(info: ArgsInfo, key, verbose: int):
     """
     Run jccli.
     """
@@ -90,7 +90,7 @@ def version():
 @click.option('--file', "-f", required=False, type=str,
               help='SystemUser properties file')
 @pass_info
-def create_user(info: args_info, json, file):
+def create_user(info: ArgsInfo, json, file):
     """
     Create a new user in jumpcloud
     :param info: command line arguments
@@ -100,7 +100,7 @@ def create_user(info: args_info, json, file):
     :param file: file to json of SystemUser properties
     :return:
     """
-    api1 = jc_api1(info.key)
+    api1 = JumpcloudApiV1(info.key)
     user = {}
     if json is not None:
         user = get_user_from_term(json)
@@ -118,7 +118,7 @@ def create_user(info: args_info, json, file):
 @click.option('--type', "-t", required=True, type=click.Choice(['user', 'system']),
               help='The type of group')
 @pass_info
-def create_group(info: args_info, name, type):
+def create_group(info: ArgsInfo, name, type):
     """
     Command to create a Jumpcloud group
     :param info:
@@ -126,7 +126,7 @@ def create_group(info: args_info, name, type):
     :param type: The group type
     :return:
     """
-    api2 = jc_api2(info.key)
+    api2 = JumpcloudApiV2(info.key)
     click.echo("Create jumpcloud {} group {}".format(type, name))
     response = api2.create_group(name, type)
     click.echo(response)
@@ -134,14 +134,14 @@ def create_group(info: args_info, name, type):
 @cli.command()
 @click.option('--name', "-n", required=True, type=str, help='Name of the group')
 @pass_info
-def delete_group(info: args_info, name):
+def delete_group(info: ArgsInfo, name):
     """
     Command to delete a Jumpcloud group
     :param info:
     :param name: The group name
     :return:
     """
-    api2 = jc_api2(info.key)
+    api2 = JumpcloudApiV2(info.key)
     click.echo("Delete jumpcloud group {}".format(name))
     response = api2.delete_group(name)
     click.echo(response)
@@ -149,7 +149,7 @@ def delete_group(info: args_info, name):
 @cli.command()
 @click.option('--username', "-u", required=False, type=str, help='The user name')
 @pass_info
-def delete_user(info: args_info, username):
+def delete_user(info: ArgsInfo, username):
     """
     Delete a jumpcloud user
     :param info: command line arguments
@@ -159,7 +159,7 @@ def delete_user(info: args_info, username):
     if username is None:
         raise MissingRequiredArgumentError("Deleting a user requires a username")
 
-    api1 = jc_api1(info.key)
+    api1 = JumpcloudApiV1(info.key)
     click.echo("Delete jumpcloud user " + username)
     id = api1.get_user_id(username)
     if id is None:
@@ -172,7 +172,7 @@ def delete_user(info: args_info, username):
 @cli.command()
 @click.option('--config', "-c", required=True, type=str, help='The config file')
 @pass_info
-def sync(info: args_info, config):
+def sync(info: ArgsInfo, config):
     """
     Sync Jumpcloud users from a file
     """
@@ -191,8 +191,8 @@ def sync_users(key, users):
     """
     sync users with jumpcloud
     """
-    api1 = jc_api1(key)
-    api2 = jc_api2(key)
+    api1 = JumpcloudApiV1(key)
+    api2 = JumpcloudApiV2(key)
 
     jc_usernames = []
     jc_emails = []

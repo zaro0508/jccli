@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-.. currentmodule:: jccli.jc_api1.py
+.. currentmodule:: jccli.jc_api_v1.py
 .. moduleauthor:: zaro0508 <zaro0508@gmail.com>
 
 This is a utility library for the jumpcloud version 1 api
@@ -19,7 +19,7 @@ from jcapiv1.rest import ApiException
 from jccli.helpers import class_to_dict
 
 # pylint: disable=too-many-arguments
-class jc_api1:
+class JumpcloudApiV1:
     """
         Wrapper for Jumpcloud API v1
     """
