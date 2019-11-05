@@ -19,8 +19,9 @@ can be used as a handy facility for running the task from a command line.
 """
 import logging
 import click
+from jccli.errors import SystemUserNotFoundError, MissingRequiredArgumentError
 
-from jccli.helpers import get_users_from_file
+from jccli.helpers import get_users_from_config, get_user_from_file, get_user_from_term
 from jccli.jc_api1 import jc_api1
 from jccli.jc_api2 import jc_api2
 from .__init__ import __version__
@@ -84,7 +85,59 @@ def version():
 
 
 @cli.command()
-@click.option('--config', "-u", required=True, type=str, help='Path to the users file')
+@click.option('--json', "-j", required=False, type=str,
+              help='Json containing SystemUser properties')
+@click.option('--file', "-f", required=False, type=str,
+              help='File containing SystemUser properties')
+@pass_info
+def create_user(info: args_info, json, file):
+    """
+    Create a new user in jumpcloud
+    :param info: command line arguments
+    :param json: json of SystemUser properties
+            Example:
+              "{\"email\": \"jc.tester1@sagebase.org\", \"username\": \"jctester1\"}"
+    :param file: file to json of SystemUser properties
+    :return:
+    """
+    api1 = jc_api1(info.key)
+    user = {}
+    if json is not None:
+        user = get_user_from_term(json)
+    elif file is not None:
+        user = get_user_from_file(file)
+    else:
+        raise MissingRequiredArgumentError("SystemUser properties not provided")
+
+    click.echo("Create jumpcloud user " + user['username'])
+    response = api1.create_user(user)
+    click.echo(response)
+
+@cli.command()
+@click.option('--username', "-u", required=False, type=str, help='Delete by username')
+@pass_info
+def delete_user(info: args_info, username):
+    """
+    Delete a jumpcloud user
+    :param info: command line arguments
+    :param username: The username to delete
+    :return:
+    """
+    if username is None:
+        raise MissingRequiredArgumentError("Deleting a user requires a username")
+
+    api1 = jc_api1(info.key)
+    click.echo("Delete jumpcloud user " + username)
+    id = api1.get_user_id(username)
+    if id is None:
+        raise SystemUserNotFoundError("System user {} not found".format(username))
+
+    response = api1.delete_user(id)
+    click.echo(response)
+
+
+@cli.command()
+@click.option('--config', "-c", required=True, type=str, help='Path to the users file')
 @pass_info
 def sync(info: args_info, config):
     """
@@ -92,9 +145,9 @@ def sync(info: args_info, config):
     """
     click.echo("Sync users on jumpcloud with users in " + config)
     click.echo("getting users from file: " + config)
-    config_users = get_users_from_file(config)
+    config_users = get_users_from_config(config)
     if config_users is None:
-        exit("No users to manage therefore nothing to do")
+        raise MissingRequiredArgumentError("A sync requires a config file")
 
     sync_users(info.key, config_users)
 

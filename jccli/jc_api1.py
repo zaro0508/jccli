@@ -11,6 +11,8 @@ This is a utility library for the jumpcloud version 1 api
     To learn more about the jumpcloud api 1
     `project website <https://github.com/TheJumpCloud/jcapi-python/tree/master/jcapiv1>`_.
 """
+from distutils.util import strtobool
+
 import jcapiv1
 from jcapiv1.rest import ApiException
 
@@ -62,29 +64,55 @@ class jc_api1:
         except ApiException as error:
             raise "Exception when calling SystemusersApi->systemusers_list: %s\n" % error
 
-    def create_user(self, username, email, firstname=None, lastname=None):
+    def create_user(self, systemuser):
         """
-        Create a new user
-        :param username:
-        :param email:
-        :param firstname:
-        :param lastname:
-        :return: Create a new user in jumpcloud
+        Create a new user in jumpcloud
+        :param systemuser: a dictoionary of Systemuser properties
+               https://github.com/TheJumpCloud/jcapi-java/blob/master/jcapiv1/docs/Systemuser.md
+        :return: The api response
         """
         content_type = 'application/json'
         accept = 'application/json'
         x_org_id = ''
-        body = jcapiv1.Systemuserputpost(username=username,
-                                         email=email,
-                                         firstname=firstname,
-                                         lastname=lastname,
-                                         sudo=True,
-                                         allow_public_key=True)
+        body = jcapiv1.Systemuserputpost(username=systemuser['username'],
+                                         email=systemuser['email'],
+                                         firstname=systemuser.get('firstname', ''),
+                                         lastname=systemuser.get('lastname', ''),
+                                         account_locked=strtobool(
+                                             systemuser.get('account_locked', 'False')),
+                                         activated=strtobool(
+                                             systemuser.get('activated', 'False')),
+                                         allow_public_key=strtobool(
+                                             systemuser.get('allow_public_key', 'True')),
+                                         ldap_binding_user=strtobool(
+                                             systemuser.get('ldap_binding_user', 'False')),
+                                         passwordless_sudo=strtobool(
+                                             systemuser.get('passwordless_sudo', 'False')),
+                                         sudo=strtobool(systemuser.get('sudo', 'False')))
         try:
             api_response = self.system_users_api.systemusers_post(content_type,
                                                                   accept,
                                                                   body=body,
                                                                   x_org_id=x_org_id)
+            return api_response
+        except ApiException as error:
+            raise "Exception when calling SystemusersApi->systemusers_post: %s\n" % error
+
+
+    def delete_user(self, user_id):
+        """
+        Delete a user from jumpcloud
+        :param id: The jumpcloud id of the user
+        :return:
+        """
+        content_type = 'application/json'
+        accept = 'application/json'
+        x_org_id = ''
+        try:
+            api_response = self.system_users_api.systemusers_delete(user_id,
+                                                                    content_type,
+                                                                    accept,
+                                                                    x_org_id=x_org_id)
             return api_response
         except ApiException as error:
             raise "Exception when calling SystemusersApi->systemusers_post: %s\n" % error
