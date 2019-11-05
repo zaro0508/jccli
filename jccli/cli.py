@@ -35,7 +35,7 @@ LOGGING_LEVELS = {
 }  #: a mapping of `verbose` option counts to logging levels
 
 
-class args_info(object):
+class args_info():
     """
     An information object to pass data between CLI functions.
     """

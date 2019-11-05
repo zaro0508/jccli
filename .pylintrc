@@ -245,7 +245,7 @@ class-attribute-naming-style=any
 
 # Naming style matching correct class names
 # class-naming-style=snake_case
-class-naming-style=any
+class-naming-style=PascalCase
 
 # Regular expression matching correct class names. Overrides class-naming-style
 #class-rgx=
