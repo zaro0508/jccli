@@ -86,7 +86,7 @@ class TestCli:
         ]
         mock_create_group.return_value = response
         runner: CliRunner = CliRunner()
-        result: Result = runner.invoke(cli.cli, ["create-group", "-n", "foo", "-t", "system"])
+        result: Result = runner.invoke(cli.cli, ["create-group", "--name", "foo", "--type", "system"])
         assert (
             yaml.safe_load(result.output) == response
         ), "Invalid response in output."
@@ -96,7 +96,25 @@ class TestCli:
         response = None
         mock_create_group.return_value = response
         runner: CliRunner = CliRunner()
-        result: Result = runner.invoke(cli.cli, ["delete-group", "-n", "foo"])
+        result: Result = runner.invoke(cli.cli, ["delete-group", "--name", "foo"])
         assert (
             result.output.strip() == "Group foo deleted",
         ), "Invalid response in output."
+
+    @patch.object(JumpcloudApiV2,'delete_group')
+    def test_delete_group_non_existing_group(self, mock_create_group):
+        response = None
+        mock_create_group.return_value = response
+        runner: CliRunner = CliRunner()
+        result: Result = runner.invoke(cli.cli, ["delete-group", "--name", "foo"])
+        assert (
+            result.output.strip() == "foo not found"
+        ), "Invalid response in output."
+
+
+    # def test_create_user_with_invalid_json(self):
+    #     runner: CliRunner = CliRunner()
+    #     result: Result = runner.invoke(cli.cli, ["create-user", "--json", "{\"email\": \"jc.tester1@sagebase.org\", \"username\": \"jctester1\"}"])
+    #     assert (
+    #         "invalid choice" in result.output.strip()
+    #     ), "Invalid choice should be indicated in output."
