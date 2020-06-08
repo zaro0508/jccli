@@ -157,6 +157,7 @@ class JumpcloudApiV2:
             if group['name'] == group_name:
                 group_id = group['id']
                 group_type = group['type']
+                break
 
         return group_id, group_type
 

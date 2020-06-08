@@ -58,6 +58,25 @@ def get_groups_from_file(data_file):
 
     return groups
 
+def get_memberships_from_file(data_file):
+    """
+    Get memberships from a data file
+    :param data_file: data file
+    :return: a list of jumpcloud memberships
+    """
+    groups = []
+    try:
+        with open(data_file, 'r') as file:
+            jc_config = json.load(file)
+            groups = jc_config['memberships']
+
+    except (KeyError) as error:
+        pass
+    except Exception as error:
+        raise error
+
+    return groups
+
 def get_user_from_term(input):
     """
     Get user from an input string

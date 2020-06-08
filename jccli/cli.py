@@ -13,8 +13,9 @@ import jccli.helpers as jccli_helpers
 from jccli.errors import MissingRequiredArgumentError
 from jccli.jc_api_v1 import JumpcloudApiV1
 from jccli.jc_api_v2 import JumpcloudApiV2
-from .__init__ import __version__
-
+#from .__init__ import __version__
+#from jccli.version import __version__
+__version__ = "0.0.7"
 # setup click-log
 LOGGER = logging.getLogger(__name__)
 click_log.basic_config(LOGGER)
@@ -137,6 +138,8 @@ def sync(ctx, dry_run, data):
     LOGGER.debug("--- sync users ----")
     users = jccli_helpers.get_users_from_file(data)
     sync_users(ctx, users)
+    memberships = jccli_helpers.get_memberships_from_file(data)
+    sync_memberships(ctx, memberships)
 
 def sync_groups(ctx, groups):
     # pylint: disable-msg=too-many-locals
@@ -157,7 +160,7 @@ def sync_groups(ctx, groups):
     jc_groups_request = api2.get_groups()
     if jc_groups_request:
         for jc_group in jc_groups_request:
-            jc_group_names.append(jc_group['_name'])
+            jc_group_names.append(jc_group.name)
 
     LOGGER.debug(f"jumpcloud groups: {jc_group_names}")
 
@@ -191,11 +194,12 @@ def sync_groups(ctx, groups):
 
     removed_groups = []
     for jc_group in jc_groups_request:
-        jc_group_type = jc_group['_type']
-        jc_group_name = jc_group['_name']
-        do_remove_group = False
+        jc_group_type = jc_group.type
+        jc_group_name = jc_group.name
         if jc_group_name not in local_group_names:
             do_remove_group = True
+        else:
+            do_remove_group = False
 
         if do_remove_group:
             removed_groups.append(jc_group)
@@ -224,9 +228,9 @@ def sync_users(ctx, users):
     jc_users_request = api1.get_users()
     if jc_users_request:
         for jc_user in jc_users_request:
-            jc_usernames.append(jc_user['_username'])
-            jc_emails.append(jc_user['_email'])
-            jc_users.append({'username': jc_user['_username'], 'email': jc_user['_email']})
+            jc_usernames.append(jc_user.username)
+            jc_emails.append(jc_user.email)
+            jc_users.append({'username': jc_user.username, 'email': jc_user.email})
 
     LOGGER.debug(f"jumpcloud users: {jc_usernames}")
 
@@ -282,3 +286,69 @@ def sync_users(ctx, users):
             LOGGER.info(f"remove user: {user_name}")
             if not dry_run:
                 response = api1.delete_user(username=user_name)
+
+def sync_memberships(ctx, memberships):
+    # pylint: disable-msg=too-many-locals
+    # pylint: disable-msg=too-many-branches
+    """
+    Sync Jumpcloud users with groups defined in a data file
+    :param ctx: Click context
+    :param groups: memberships from data file
+    :return:
+    """
+    key = ctx.obj.get('key')
+    dry_run = ctx.params.get('dry_run')
+
+    local_groups = memberships
+
+    api2 = JumpcloudApiV2(key)
+    jc_group_names = []
+    jc_groups_request = api2.get_groups()
+    if jc_groups_request:
+        for jc_group in jc_groups_request:
+            jc_group_names.append(jc_group.name)
+
+    LOGGER.debug(f"jumpcloud groups: {jc_group_names}")
+
+    # create new groups
+    added_groups = []
+    for group in local_groups:
+        do_create_group = False
+        try:
+            group_name = group['name']
+            group_type = group['type']
+            if group_name not in jc_group_names:
+                do_create_group = True
+            else:
+                LOGGER.debug(f"{group_name} group already exists")
+        except KeyError as error:
+            raise error
+
+        if do_create_group:
+            added_groups.append(group_name)
+            new_group = {}
+            new_group['name'] = group_name
+            new_group['type'] = group_type
+            LOGGER.info(f"create {' '.join(group_type.split('_'))}: {group_name}")
+            if not dry_run:
+                response = api2.create_group(group_name, group_type)
+
+    # remove groups that do not exist in the users file
+    local_group_names = []
+    for group in local_groups:
+        local_group_names.append(group['name'])
+
+    removed_groups = []
+    for jc_group in jc_groups_request:
+        jc_group_type = jc_group.type
+        jc_group_name = jc_group.name
+        if jc_group_name not in local_group_names:
+            do_remove_group = True
+        else:
+            do_remove_group = False
+
+        if do_remove_group:
+            removed_groups.append(jc_group)
+            LOGGER.info(f"remove {' '.join(jc_group_type.split('_'))}: {jc_group_name}")
+            if not dry_run:
+                response = api2.delete_group(jc_group_name)

@@ -8,4 +8,4 @@
 A Jumpcloud command line client
 """
 
-from .version import __version__, __release__  # noqa
+#from .version import __version__, __release__  # noqa
