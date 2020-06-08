@@ -10,12 +10,19 @@ install:
   - pip install pre-commit
 stages:
   - name: validate
+  - name: test
+  - name: package
 jobs:
   include:
     - stage: validate
       script:
         - pre-commit autoupdate
         - pre-commit run --all-files
+    - stage: test
+      script:
         - make install
-        - make build
         - make test
+    - stage: package
+      script:
+        - make install
+        - make package
