@@ -3,14 +3,9 @@ language: python
 python: 3.7
 cache: pip
 fast_finish: true
-addons:
-  apt_packages:
-    - pandoc
 env:
   global:
     - buildnum=$TRAVIS_BUILD_NUMBER
-install:
-  - pip install pre-commit
 stages:
   - name: validate
   - name: test
@@ -19,6 +14,7 @@ jobs:
   include:
     - stage: validate
       script:
+        - make install
         - pre-commit autoupdate
         - pre-commit run --all-files
     - stage: test
