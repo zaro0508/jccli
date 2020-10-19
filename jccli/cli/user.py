@@ -86,7 +86,7 @@ def list_users(ctx, **kwargs):
 @click.pass_context
 def set_user(ctx, username, email, firstname, lastname):
     """
-    Set user attributes.
+    Set user attributes
     """
     api1 = JumpcloudApiV1(ctx.obj.get('key'))
 
